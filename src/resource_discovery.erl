@@ -305,7 +305,9 @@ contact_nodes(Timeout) ->
 		{ok, [list_to_atom(I_ContactNode)]};
 	    _ -> rd_util:get_env(contact_nodes, [node()])
 	end,
-    ping_contact_nodes(ContactNodes, Timeout).
+    %% add local node
+    ContactNodes1 = ContactNodes ++ [node()],
+    ping_contact_nodes(ContactNodes1, Timeout).
 
 %% @spec contact_nodes() -> pong | pang | no_contact_node
 %% @equiv contact_nodes(10000)
@@ -316,6 +318,7 @@ ping_contact_nodes([], _Timeout) ->
     log4erl:info("No contact node specified. Potentially running in a standalone node", []),
     {error, no_contact_node};
 ping_contact_nodes(Nodes, Timeout) ->
+    log4erl:info("Pinging contact nodes ~p", [Nodes]),
     Reply = rd_util:do_until(fun(Node) ->
 			     case rd_util:sync_ping(Node, Timeout) of
 				 pong -> true;
