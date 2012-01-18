@@ -117,7 +117,7 @@ sync_resources(Timeout) ->
     sync_locals(),
     Self = self(),
     Nodes = nodes(known),
-    log4erl:info("synching resources to nodes: ~p", [Nodes]),
+    log4erl:debug("synching resources to nodes: ~p", [Nodes]),
     LocalResourceTuples = rd_core:get_local_resource_tuples(),
     DeletedTuples = rd_core:get_deleted_resource_tuples(),
     TargetTypes = rd_core:get_target_resource_types(),
@@ -347,10 +347,10 @@ ping_contact_nodes(Nodes, Timeout) ->
 rpc_call(Type, Module, Function, Args, Timeout) ->
     case get_resource(Type) of
 	{ok, Resource} -> 
-	    log4erl:info("got a resource ~p", [Resource]),
+	    log4erl:debug("got a resource ~p", [Resource]),
 	    case rpc:call(Resource, Module, Function, Args, Timeout) of
 		{badrpc, Reason} ->
-		    log4erl:info("got a badrpc ~p", [Reason]),
+		    log4erl:error("got a badrpc ~p", [Reason]),
 		    delete_resource_tuple({Type, Resource}),
 		    rpc_call(Type, Module, Function, Args, Timeout);
 		Reply ->
@@ -375,7 +375,7 @@ rpc_multicall(Type, Module, Function, Args, Timeout) ->
     case get_resources(Type) of
         [] -> {error, no_resources};
 	Resources -> 
-	    log4erl:info("got resources ~p", [Resources]),
+	    log4erl:debug("got resources ~p", [Resources]),
 	    {Resl, BadNodes} = rpc:multicall(Resources, Module, Function, Args, Timeout),
 	    [delete_resource_tuple({Type, BadNode}) || BadNode <- BadNodes],
 	    {Resl, BadNodes}

@@ -42,7 +42,7 @@ do_until(F, [H|T]) ->
 %%--------------------------------------------------------------------
 -spec sync_ping(node(), timeout()) -> pang | pong.
 sync_ping(Node, Timeout) ->
-    log4erl:info("pinging node: ~p", [Node]),
+    log4erl:debug("pinging node: ~p", [Node]),
     case net_adm:ping(Node) of
         pong ->
 	    NumNodes = get_number_of_remote_nodes(Node),
@@ -56,7 +56,7 @@ sync_ping(Node, Timeout) ->
 get_number_of_remote_nodes(Node) ->
     try
 	Nodes = rpc:call(Node, erlang, nodes, [known]),
-	log4erl:info("contact node has ~p", [Nodes]),
+	log4erl:debug("contact node has ~p", [Nodes]),
 	length(Nodes)
     catch
 	_C:_E ->
