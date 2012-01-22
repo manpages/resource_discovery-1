@@ -40,6 +40,7 @@
 -export([
          get_resource/1, 
          get_resources/1, 
+	 get_local_resource_tuples/0,
          get_num_resource/1, 
          get_resource_types/0,
          get_num_resource_types/0
@@ -48,6 +49,7 @@
 % Delete
 -export([
          delete_local_resource_tuple/1,
+	 delete_local_resource_tuples/1,
          delete_target_resource_type/1,
          delete_resource_tuple/1,
 	 delete_callback_module/1,
@@ -218,6 +220,15 @@ get_resources(Type) ->
 get_resource_types() ->
     rd_core:get_resource_types().
 
+
+%%------------------------------------------------------------------------------
+%% @doc Gets a list of the local resource tuples.
+%% @end
+%%------------------------------------------------------------------------------
+-spec get_local_resource_tuples() -> [resource_type()].
+get_local_resource_tuples() ->
+    rd_core:get_local_resource_tuples().
+
 %%------------------------------------------------------------------------------
 %% @doc Removes a cached resource from the resource pool. Only returns after the
 %%      resource has been deleted.
@@ -243,6 +254,16 @@ delete_target_resource_type(Type) ->
 -spec delete_local_resource_tuple(resource_tuple()) -> ok | {error, local_resource_not_found, resource_tuple()}.
 delete_local_resource_tuple(LocalResourceTuple) ->
     rd_core:delete_local_resource_tuple(LocalResourceTuple).
+
+%%------------------------------------------------------------------------------
+%% @doc Remove local resource tuples. The resources will no longer be available for
+%%      other nodes to discover once this call returns.
+%% @end
+%%------------------------------------------------------------------------------
+-spec delete_local_resource_tuples([resource_tuple()]) -> ok.
+delete_local_resource_tuples(LocalResourceTuples) ->
+    [rd_core:delete_local_resource_tuple(LocalResourceTuple) || LocalResourceTuple <- LocalResourceTuples],
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc

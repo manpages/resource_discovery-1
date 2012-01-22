@@ -12,11 +12,19 @@
 %% resource_discovery:add_target_resource_types([b]).
 %% resource_discovery:get_resources(b).
 
+
 process_test_() ->
     {setup,
-     fun start_process/0,
-     fun stop_process/1,
-     fun run/1}.
+      fun start_process/0,
+      fun stop_process/1,
+      fun run/1}.
+
+resource_deletion_test_() ->
+    {setup,
+      fun start_process/0,
+      fun stop_process/1,
+      fun run_resource_deletion/1}.
+
 
 start_process() ->
     resource_discovery:start().
@@ -77,6 +85,18 @@ run(_P) ->
      ?_assertMatch({error, not_found}, resource_discovery:get_resource(b))
     ]}.
 
+run_resource_deletion(_P) ->
+    {inorder,
+    [
+     %% add local and target resources
+     ?_assertMatch(ok, resource_discovery:add_local_resource_tuples(?RESOURCE_TUPLES)),
+     %% check that local resources that we added match 
+     ?_assertEqual([{a, a}, {a, b}, {b, a}] , resource_discovery:get_local_resource_tuples()),
+     %% remove all local resources
+     ?_assertMatch(ok, resource_discovery:delete_local_resource_tuples(resource_discovery:get_local_resource_tuples())),
+     %% check that they are all gone
+     ?_assertMatch([], resource_discovery:get_local_resource_tuples())
+    ]}.
 
 
 %% test call notifications
