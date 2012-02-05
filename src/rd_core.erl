@@ -162,7 +162,7 @@ delete_local_resource_tuple(LocalResourceTuple) ->
 %%-----------------------------------------------------------------------
 -spec delete_resource_tuple(resource_tuple()) -> ok.
 delete_resource_tuple({_,_} = ResourceTuple) ->
-    gen_server:call(?SERVER, {delete_resource_tuple, ResourceTuple}).
+    gen_server:cast(?SERVER, {delete_resource_tuple, ResourceTuple}).
 
 %%--------------------------------------------------------------------
 %% @doc inform an rd_core server of local resources and target types.
@@ -293,9 +293,6 @@ handle_call({delete_target_resource_type, TargetType}, _From, State) ->
 handle_call({delete_local_resource_tuple, LocalResourceTuple}, _From, State) ->
     Reply = rd_store:delete_local_resource_tuple(LocalResourceTuple),
     {reply, Reply, State};
-handle_call({delete_resource_tuple, ResourceTuple}, _From, State) ->
-    Reply = rd_store:delete_resource_tuple(ResourceTuple),
-    {reply, Reply, State};
 handle_call(get_resource_types, _From, State) ->
     Reply = rd_store:get_resource_types(),
     {reply, Reply, State};
@@ -325,6 +322,9 @@ handle_cast(trade_resources, State) ->
         end,
         nodes(known)),
     rd_store:delete_deleted_resource_tuple(),
+    {noreply, State};
+handle_cast({delete_resource_tuple, ResourceTuple}, State) ->
+    rd_store:delete_resource_tuple(ResourceTuple),
     {noreply, State};
 handle_cast({trade_resources, {ReplyTo, {Remotes, RemoteDeletedTuples}}}, State) ->
     log4erl:debug("trade_resources, got remotes ~p: deleted: ~p", [Remotes, RemoteDeletedTuples]),
