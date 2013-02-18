@@ -198,7 +198,7 @@ all_of_type_get(Type) ->
 %%-----------------------------------------------------------------------
 %%-spec sync_resources(node(), {LocalResourceTuples, TargetTypes, DeletedTuples}) -> ok.
 sync_resources(Node, {LocalResourceTuples, TargetTypes, DeletedTuples}) ->
-    log4erl:debug("synch resources for node: ~p", [Node]),
+    log4erl:info("synch resources for node: ~p", [Node]),
     {ok, FilteredRemotes} = gen_server:call({?SERVER, Node}, {sync_resources, {LocalResourceTuples, TargetTypes, DeletedTuples}}),
     rd_store:store_resource_tuples(FilteredRemotes),
     make_callbacks(FilteredRemotes),
@@ -256,12 +256,12 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({sync_resources, {Remotes, RemoteTargetTypes, RemoteDeletedTuples}}, _From, State) ->
-    log4erl:debug("sync_resources, got remotes: ~p deleted: ~p", [Remotes, RemoteDeletedTuples]),
+    log4erl:info("sync_resources, got remotes: ~p deleted: ~p", [Remotes, RemoteDeletedTuples]),
     LocalResourceTuples = rd_store:get_local_resource_tuples(),
     TargetTypes = rd_store:get_target_resource_types(),
     FilteredRemotes = filter_resource_tuples_by_types(TargetTypes, Remotes),
     FilteredLocals = filter_resource_tuples_by_types(RemoteTargetTypes, LocalResourceTuples),
-    log4erl:debug("sync_resources, storing filted remotes: ~p", [FilteredRemotes]),
+    log4erl:info("sync_resources, storing filted remotes: ~p", [FilteredRemotes]),
     rd_store:store_resource_tuples(FilteredRemotes),
     [rd_store:delete_resource_tuple(DR) || DR <- RemoteDeletedTuples],
     make_callbacks(FilteredRemotes),
@@ -292,6 +292,9 @@ handle_call({delete_target_resource_type, TargetType}, _From, State) ->
     {reply, Reply, State};
 handle_call({delete_local_resource_tuple, LocalResourceTuple}, _From, State) ->
     Reply = rd_store:delete_local_resource_tuple(LocalResourceTuple),
+    {reply, Reply, State};
+handle_call({delete_resource_tuple, ResourceTuple}, _From, State) ->
+    Reply = rd_store:delete_resource_tuple(ResourceTuple),
     {reply, Reply, State};
 handle_call(get_resource_types, _From, State) ->
     Reply = rd_store:get_resource_types(),
@@ -332,9 +335,9 @@ handle_cast({trade_resources, {ReplyTo, {Remotes, RemoteDeletedTuples}}}, State)
     LocalsDeleted = rd_store:get_deleted_resource_tuples(),
     TargetTypes = rd_store:get_target_resource_types(),
     FilteredRemotes = filter_resource_tuples_by_types(TargetTypes, Remotes),
-    log4erl:debug("got remotes and filtered ~p", [FilteredRemotes]),
+    log4erl:info("got remotes and filtered ~p", [FilteredRemotes]),
     rd_store:store_resource_tuples(FilteredRemotes),
-    log4erl:debug("trade_resources, deleting ~p", [RemoteDeletedTuples]),
+    log4erl:info("trade_resources, deleting ~p", [RemoteDeletedTuples]),
     [rd_store:delete_resource_tuple(DR) || DR <- RemoteDeletedTuples],
     make_callbacks(FilteredRemotes),
     reply(ReplyTo, {Locals, LocalsDeleted}),
